@@ -32,8 +32,27 @@ import com.okta.authfoundation.credential.kmp.Credential
  *   [IllegalStateException] naming the missing token, produced before any network request, if
  *   [type]'s corresponding token is absent from this credential.
  */
-suspend fun Credential.crossAppAccessSubject(type: SubjectAssertion.Type = SubjectAssertion.Type.ID_TOKEN): Result<SubjectAssertion> =
-    TODO("implemented in the https://oktainc.atlassian.net/browse/OKTA-1258537")
+fun Credential.crossAppAccessSubject(type: SubjectAssertion.Type = SubjectAssertion.Type.ID_TOKEN): Result<SubjectAssertion> =
+    runCatching {
+        when (type) {
+            SubjectAssertion.Type.ID_TOKEN -> {
+                SubjectAssertion.idToken(
+                    token.idToken ?: throw IllegalStateException("This credential has no ID token to use as a Cross App Access subject.")
+                )
+            }
+
+            SubjectAssertion.Type.ACCESS_TOKEN -> {
+                SubjectAssertion.accessToken(token.accessToken)
+            }
+
+            SubjectAssertion.Type.REFRESH_TOKEN -> {
+                SubjectAssertion.refreshToken(
+                    token.refreshToken
+                        ?: throw IllegalStateException("This credential has no refresh token to use as a Cross App Access subject.")
+                )
+            }
+        }
+    }
 
 /**
  * One-call convenience that derives a subject assertion from this credential and runs the
@@ -50,4 +69,8 @@ suspend fun Credential.crossAppAccessToken(
     idpClient: OAuth2Client,
     target: CrossAppAccessTarget,
     scope: List<String>? = null,
-): Result<TokenInfo> = TODO("implemented in the https://oktainc.atlassian.net/browse/OKTA-1258537")
+): Result<TokenInfo> =
+    crossAppAccessSubject().mapCatching { subject ->
+        val flow = CrossAppAccessFlow.create(idpClient, target).getOrThrow()
+        flow.exchange(subject, scope).getOrThrow()
+    }
