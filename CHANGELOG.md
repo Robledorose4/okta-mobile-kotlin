@@ -82,6 +82,15 @@
 
 #### Added
 
+- Cross App Access (XAA): `CrossAppAccessFlow` performs the two-step ID-JAG
+  authorization-chaining exchange — `start()` exchanges a subject assertion (ID token, access
+  token, or refresh token) for an ID-JAG at the IdP authorization server, `redeem()` presents it
+  at a target resource authorization server for a scoped resource access token, and `exchange()`
+  composes the two. `CrossAppAccessTarget` (with a builder for its nine settings) names the
+  target by issuer, by Okta custom authorization server id, or by an already-built `OAuth2Client`.
+  `Credential.crossAppAccessSubject`/`crossAppAccessToken` derive the exchange from a stored
+  credential in one call. Includes a Java `CompletableFuture` wrapper and chaining target
+  builder. See the [`oauth2` README](oauth2/README.md#cross-app-access) for details.
 - Pushed Authorization Request (PAR) support in `AuthorizationCodeFlow.start()`: when
   `enablePushedAuthorizationRequests` is enabled (or the authorization server advertises
   `require_pushed_authorization_requests`) and a PAR endpoint is discovered, pushes the
